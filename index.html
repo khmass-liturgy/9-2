@@ -1,1 +1,705 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>교하성당 9-2구역 교적관리</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Noto Sans KR',sans-serif;background:#0f172a;color:#e2e8f0;min-height:100vh;font-size:14px}
 
+  /* 헤더 */
+  .header{background:linear-gradient(135deg,#1e3a5f 0%,#0f172a 100%);border-bottom:1px solid #1e40af44;padding:14px 20px;display:flex;align-items:center;justify-content:space-between}
+  .header-left{display:flex;align-items:center;gap:12px}
+  .header-cross{font-size:26px;color:#93c5fd}
+  .header-title{font-size:18px;font-weight:700;color:#e0f2fe;letter-spacing:-0.5px}
+  .header-sub{font-size:11px;color:#64748b;margin-top:2px}
+  .header-right{display:flex;align-items:center;gap:10px}
+  .save-ok{color:#4ade80;font-size:12px;font-weight:600;display:none}
+  .badge{background:#1e3a5f;border-radius:7px;padding:5px 12px;font-size:12px;color:#93c5fd;border:1px solid #2563eb44}
+
+  /* 탭 */
+  nav{background:#0f172a;border-bottom:1px solid #1e293b;display:flex;gap:0;padding:0 20px}
+  .tab-btn{background:none;border:none;cursor:pointer;padding:12px 18px;font-size:13px;font-weight:600;color:#64748b;border-bottom:2px solid transparent;transition:all .2s;font-family:inherit}
+  .tab-btn.active{color:#93c5fd;border-bottom:2px solid #3b82f6}
+
+  /* 메인 */
+  main{padding:18px 20px;max-width:1400px;margin:0 auto}
+
+  /* 툴바 */
+  .toolbar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+  .toolbar input,.toolbar select{background:#1e293b;border:1px solid #334155;border-radius:7px;color:#e2e8f0;padding:8px 12px;font-size:13px;outline:none;font-family:inherit}
+  .toolbar input{flex:1 1 200px}
+  .btn{border:none;border-radius:7px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
+  .btn-primary{background:#1d4ed8;color:#fff}
+  .btn-primary:hover{background:#2563eb}
+  .btn-success{background:#15803d;color:#fff}
+  .btn-success:hover{background:#16a34a}
+  .btn-warn{background:#b45309;color:#fff}
+  .btn-warn:hover{background:#d97706}
+  .btn-danger{background:#7f1d1d22;border:1px solid #ef444455;color:#ef4444}
+  .btn-danger:hover{background:#7f1d1d44}
+  .btn-ghost{background:none;border:1px solid #334155;color:#94a3b8}
+  .btn-ghost:hover{border-color:#64748b;color:#e2e8f0}
+
+  /* 신자 테이블 */
+  .tbl-head{display:grid;grid-template-columns:36px 72px 64px 110px 120px 86px 64px 90px 90px 1fr;gap:5px;padding:5px 8px;color:#475569;font-size:11px;font-weight:700;border-bottom:1px solid #1e293b;margin-bottom:3px}
+  .tbl-row{display:grid;grid-template-columns:36px 72px 64px 110px 120px 86px 64px 90px 90px 1fr;gap:5px;padding:7px 8px;border-radius:7px;cursor:pointer;background:#1e293b;border:1px solid transparent;transition:border-color .15s;align-items:center;margin-bottom:2px}
+  .tbl-row:hover{border-color:#3b82f6}
+  .tbl-row.dimmed{opacity:.55}
+  .tbl-row .num{color:#475569;font-size:11px}
+  .tbl-row .rel-cell{font-size:11px;color:#94a3b8}
+  .tbl-row .name-cell{font-weight:600}
+  .tbl-row .name-head{color:#93c5fd}
+  .tbl-row .baptism-cell{font-size:12px;color:#94a3b8}
+  .tbl-row .phone-cell{font-size:12px}
+  .tbl-row .birth-cell{font-size:11px;color:#64748b}
+  .tbl-row .feast-cell{font-size:11px;color:#f59e0b}
+  .tbl-row .dong-cell{font-size:11px;color:#94a3b8}
+  .tbl-row .head-cell{font-size:12px}
+
+  /* 태그 */
+  .tag{display:inline-block;border-radius:5px;font-size:10px;padding:1px 7px;font-weight:600;white-space:nowrap}
+
+  /* 모달 */
+  .modal-bg{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;z-index:200;padding:16px}
+  .modal-bg.open{display:flex}
+  .modal{background:#1e293b;border-radius:14px;padding:24px;width:100%;max-width:540px;max-height:92vh;overflow-y:auto;border:1px solid #334155}
+  .modal-title{font-size:17px;font-weight:700;color:#93c5fd;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center}
+  .close-btn{background:none;border:none;color:#64748b;font-size:22px;cursor:pointer;line-height:1}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .form-group{display:flex;flex-direction:column;gap:4px}
+  .form-group.full{grid-column:1/-1}
+  .form-group label{font-size:11px;color:#64748b;font-weight:700;letter-spacing:.3px}
+  .form-group input,.form-group select,.form-group textarea{background:#0f172a;border:1px solid #334155;border-radius:7px;color:#e2e8f0;padding:8px 10px;font-size:13px;outline:none;font-family:inherit;width:100%}
+  .form-group textarea{min-height:80px;resize:vertical}
+  .modal-footer{display:flex;justify-content:space-between;align-items:center;margin-top:18px;gap:8px}
+
+  /* SMS 탭 레이아웃 */
+  .sms-layout{display:grid;grid-template-columns:260px 1fr;gap:18px}
+  .sms-list .sms-item{padding:11px 13px;border-radius:7px;margin-bottom:5px;cursor:pointer;background:#1e293b;border:1px solid #1e293b;font-size:13px;font-weight:600;color:#e2e8f0;transition:all .15s}
+  .sms-list .sms-item.active{background:#1d4ed822;border-color:#3b82f6;color:#93c5fd}
+  .sms-preview{margin-top:14px;background:#1e293b;border-radius:9px;padding:13px;border:1px solid #334155}
+  .sms-preview-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px}
+  .sms-preview-label{color:#64748b;font-size:11px;font-weight:700;letter-spacing:.5px}
+  .sms-text{color:#94a3b8;font-size:12px;white-space:pre-wrap;line-height:1.7}
+  .sms-textarea{width:100%;min-height:160px;background:#0f172a;border:1px solid #334155;border-radius:6px;color:#e2e8f0;font-size:12px;padding:9px;resize:vertical;outline:none;font-family:inherit}
+
+  /* 반응 테이블 */
+  .resp-head{display:grid;grid-template-columns:36px 64px 110px 120px 160px;gap:5px;padding:5px 8px;color:#475569;font-size:11px;font-weight:700;border-bottom:1px solid #1e293b;margin-bottom:3px}
+  .resp-row{display:grid;grid-template-columns:36px 64px 110px 120px 160px;gap:5px;padding:6px 8px;border-radius:7px;background:#1e293b;align-items:center;margin-bottom:2px}
+  .resp-row select{background:#0f172a;border:1px solid #334155;border-radius:6px;padding:4px 7px;font-size:12px;outline:none;width:100%;font-family:inherit}
+  .resp-scroll{max-height:calc(100vh - 250px);overflow-y:auto}
+
+  /* 통계 */
+  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:22px}
+  .stat-card{background:#1e293b;border-radius:11px;padding:18px 16px}
+  .stat-card .stat-num{font-size:30px;font-weight:700}
+  .stat-card .stat-label{color:#64748b;font-size:12px;margin-top:4px}
+  .sms-stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-bottom:22px}
+  .sms-stat-card{background:#1e293b;border-radius:10px;padding:15px}
+  .sms-stat-title{font-weight:700;color:#93c5fd;font-size:13px;margin-bottom:11px}
+  .bar-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+  .bar-bg{height:5px;background:#1e293b;border-radius:3px;width:80px;position:relative;overflow:hidden}
+  .bar-fill{position:absolute;left:0;top:0;bottom:0;border-radius:3px}
+  .note-stat-grid{display:flex;flex-wrap:wrap;gap:10px}
+  .note-card{border-radius:9px;padding:11px 16px}
+  .note-card .n-num{font-size:22px;font-weight:700}
+  .note-card .n-label{font-size:11px;margin-top:2px}
+
+  /* JSON import/export 영역 */
+  .io-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+  .section-label{color:#64748b;font-size:11px;font-weight:700;letter-spacing:.5px;margin-bottom:10px;margin-top:18px}
+  .section-label:first-child{margin-top:0}
+
+  /* 반응 빠른 배지 */
+  .resp-badges{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px}
+
+  input[type=file]{display:none}
+
+  /* 스크롤바 */
+  ::-webkit-scrollbar{width:5px;height:5px}
+  ::-webkit-scrollbar-track{background:#0f172a}
+  ::-webkit-scrollbar-thumb{background:#334155;border-radius:3px}
+</style>
+</head>
+<body>
+
+<!-- 헤더 -->
+<div class="header">
+  <div class="header-left">
+    <div class="header-cross">✟</div>
+    <div>
+      <div class="header-title">교하성당 9-2구역</div>
+      <div class="header-sub">교적관리 시스템 · 남성신자 명단</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <span class="save-ok" id="saveOk">✓ 저장됨</span>
+    <div class="badge" id="totalBadge">총 0명</div>
+  </div>
+</div>
+
+<!-- 탭 -->
+<nav>
+  <button class="tab-btn active" onclick="switchTab('members')">👥 신자명단</button>
+  <button class="tab-btn" onclick="switchTab('sms')">📨 문자관리</button>
+  <button class="tab-btn" onclick="switchTab('stats')">📊 현황통계</button>
+</nav>
+
+<main>
+
+  <!-- ══ 신자명단 탭 ══════════════════════════════════════════ -->
+  <div id="tab-members">
+    <div class="toolbar">
+      <input type="text" id="searchInput" placeholder="이름, 세례명, 동호수, 전화 검색..." oninput="renderMembers()">
+      <select id="filterNote" onchange="renderMembers()">
+        <option value="전체">전체 비고</option>
+        <option value="비고없음">비고없음</option>
+        <option value="전출">전출</option>
+        <option value="요양원">요양원</option>
+        <option value="연락처불명">연락처불명</option>
+        <option value="9-2구역장">9-2구역장</option>
+        <option value="9-2총무">9-2총무</option>
+        <option value="단톡방초대허가">단톡방초대허가</option>
+      </select>
+      <button class="btn btn-primary" onclick="openAddModal()">+ 신자추가</button>
+      <button class="btn btn-success" onclick="exportJSON()">⬇ JSON 내보내기</button>
+      <button class="btn btn-warn" onclick="document.getElementById('importFile').click()">⬆ JSON 가져오기</button>
+      <input type="file" id="importFile" accept=".json" onchange="importJSON(event)">
+    </div>
+
+    <div class="tbl-head">
+      <div>번호</div><div>가족관계</div><div>성명</div><div>세례명</div><div>휴대전화</div><div>생년월일</div><div>축일</div><div>동-호수</div><div>세대주</div><div>비고</div>
+    </div>
+    <div id="memberList"></div>
+  </div>
+
+  <!-- ══ 문자관리 탭 ══════════════════════════════════════════ -->
+  <div id="tab-sms" style="display:none">
+    <div class="sms-layout">
+      <!-- 왼쪽: 템플릿 목록 + 미리보기 -->
+      <div>
+        <div class="section-label" style="margin-top:0">문자 유형</div>
+        <div class="sms-list" id="smsList"></div>
+
+        <div class="sms-preview">
+          <div class="sms-preview-head">
+            <span class="sms-preview-label">문자 내용</span>
+            <button class="btn btn-ghost" style="padding:3px 10px;font-size:11px" onclick="toggleTemplateEdit()">편집</button>
+          </div>
+          <div id="smsPreviewText" class="sms-text"></div>
+          <textarea id="smsEditArea" class="sms-textarea" style="display:none" oninput="updateTemplate(this.value)"></textarea>
+        </div>
+      </div>
+
+      <!-- 오른쪽: 반응 체크 -->
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <div class="section-label" style="margin-top:0" id="smsRespTitle">반응 현황</div>
+          <div class="resp-badges" id="respBadges"></div>
+        </div>
+        <div class="resp-head">
+          <div>번호</div><div>성명</div><div>세례명</div><div>전화번호</div><div>반응상태</div>
+        </div>
+        <div class="resp-scroll" id="smsRespList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ 통계 탭 ════════════════════════════════════════════ -->
+  <div id="tab-stats" style="display:none">
+    <div class="section-label">핵심 현황</div>
+    <div class="stat-grid" id="statGrid"></div>
+
+    <div class="section-label">문자별 반응 집계</div>
+    <div class="sms-stat-grid" id="smsStat"></div>
+
+    <div class="section-label">비고별 현황</div>
+    <div class="note-stat-grid" id="noteStat"></div>
+  </div>
+
+</main>
+
+<!-- ══ 편집 모달 ══════════════════════════════════════════════ -->
+<div class="modal-bg" id="editModal">
+  <div class="modal">
+    <div class="modal-title">
+      <span id="modalTitle">신자 정보 편집</span>
+      <button class="close-btn" onclick="closeModal()">×</button>
+    </div>
+    <div class="form-grid">
+      <div class="form-group"><label>가족관계</label><input id="f-rel" placeholder="세대주, 자(아들), 배우자 등"></div>
+      <div class="form-group"><label>성명 *</label><input id="f-name"></div>
+      <div class="form-group"><label>세례명</label><input id="f-baptism"></div>
+      <div class="form-group"><label>휴대전화</label><input id="f-phone" placeholder="010-0000-0000"></div>
+      <div class="form-group"><label>생년월일</label><input id="f-birth" placeholder="YYYY-MM-DD"></div>
+      <div class="form-group"><label>축일 (MM/DD)</label><input id="f-feast" placeholder="예) 07/03"></div>
+      <div class="form-group"><label>동-호수</label><input id="f-dong" placeholder="예) 915-201"></div>
+      <div class="form-group"><label>세대주</label><input id="f-head"></div>
+      <div class="form-group"><label>세대주 연락처</label><input id="f-headPhone"></div>
+      <div class="form-group full">
+        <label>비고</label>
+        <select id="f-note">
+          <option value="">없음</option>
+          <option value="전출">전출</option>
+          <option value="요양원">요양원</option>
+          <option value="연락처불명">연락처불명</option>
+          <option value="9-2구역장">9-2구역장</option>
+          <option value="9-2총무">9-2총무</option>
+          <option value="단톡방초대허가">단톡방초대허가</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" id="deleteBtn" onclick="deleteCurrentMember()">삭제</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost" onclick="closeModal()">취소</button>
+        <button class="btn btn-primary" onclick="saveModal()">저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════
+//  데이터
+// ══════════════════════════════════════════════════
+const INITIAL_MEMBERS = [
+  {id:1,  rel:"세대주",   name:"김대익",  baptism:"세례자요한",     phone:"010-4594-0667",birth:"1972-06-26",feast:"",      dong:"914-1101",head:"김대익",  headPhone:"010-4594-0667",note:""},
+  {id:2,  rel:"",         name:"김동제",  baptism:"베드로클라베르", phone:"010-4544-0667",birth:"2004-09-13",feast:"09/09", dong:"914-1101",head:"김대익",  headPhone:"010-4594-0667",note:""},
+  {id:3,  rel:"",         name:"김동현",  baptism:"마리아크로난",   phone:"",             birth:"1999-04-28",feast:"",      dong:"918-403", head:"임미경",  headPhone:"010-8366-9854",note:""},
+  {id:4,  rel:"세대주",   name:"손형탁",  baptism:"세라피노",       phone:"010-3908-7284",birth:"1998-12-04",feast:"10/12", dong:"915-602", head:"손형탁",  headPhone:"010-3908-7284",note:""},
+  {id:5,  rel:"세대주",   name:"신의용",  baptism:"베네딕토",       phone:"010-4550-8037",birth:"1963-03-15",feast:"",      dong:"916-1304",head:"신의용",  headPhone:"010-4550-8037",note:"연락처불명"},
+  {id:6,  rel:"",         name:"신재원",  baptism:"요한",           phone:"",             birth:"1995-12-14",feast:"",      dong:"916-1304",head:"신의용",  headPhone:"010-4550-8037",note:""},
+  {id:7,  rel:"",         name:"신재현",  baptism:"마태오",         phone:"",             birth:"1998-04-30",feast:"",      dong:"916-1304",head:"신의용",  headPhone:"010-4550-8037",note:""},
+  {id:8,  rel:"배우자",   name:"박건배",  baptism:"(비신자)",       phone:"010-7197-0962",birth:"1962-11-19",feast:"",      dong:"914-602", head:"임춘자",  headPhone:"010-5175-0962",note:""},
+  {id:9,  rel:"세대주",   name:"이상욱",  baptism:"사도요한",       phone:"010-7662-1430",birth:"1999-05-22",feast:"",      dong:"915-302", head:"이상욱",  headPhone:"010-7662-1430",note:""},
+  {id:10, rel:"세대주",   name:"임만옥",  baptism:"요한",           phone:"",             birth:"1948-09-10",feast:"",      dong:"914-301", head:"임만옥",  headPhone:"",             note:""},
+  {id:11, rel:"세대주",   name:"김유재",  baptism:"니체시오",       phone:"010-3549-6997",birth:"1971-04-02",feast:"04/02", dong:"918-702", head:"김유재",  headPhone:"010-3549-6997",note:""},
+  {id:12, rel:"세대주",   name:"강기원",  baptism:"바르톨로메오",   phone:"010-9147-5550",birth:"1960-07-02",feast:"08/24", dong:"915-902", head:"강기원",  headPhone:"010-9147-5550",note:""},
+  {id:13, rel:"",         name:"강동균",  baptism:"골룸바노",       phone:"010-6349-5114",birth:"1985-11-23",feast:"",      dong:"915-902", head:"강기원",  headPhone:"010-9147-5550",note:""},
+  {id:14, rel:"배우자",   name:"구희선",  baptism:"프란치스코",     phone:"010-9381-9232",birth:"1975-02-23",feast:"10/04", dong:"915-201", head:"김태연",  headPhone:"010-9341-9230",note:"9-2구역장"},
+  {id:15, rel:"부",       name:"김흥국",  baptism:"대건안드레아",   phone:"010-8013-8206",birth:"1948-12-15",feast:"07/05", dong:"915-201", head:"김태연",  headPhone:"010-9341-9230",note:""},
+  {id:16, rel:"",         name:"김호겸",  baptism:"안젤로",         phone:"010-9455-6839",birth:"1988-02-26",feast:"04/12", dong:"917-303", head:"이석희",  headPhone:"010-8758-6839",note:""},
+  {id:17, rel:"세대주",   name:"강호상",  baptism:"요한아데오",     phone:"010-3270-0739",birth:"1971-03-08",feast:"",      dong:"916-1303",head:"강호상",  headPhone:"010-3270-0739",note:""},
+  {id:18, rel:"세대주",   name:"이용",    baptism:"요한",           phone:"011-9962-0699",birth:"1945-02-18",feast:"",      dong:"914-201", head:"이용",    headPhone:"011-9962-0699",note:"연락처불명"},
+  {id:19, rel:"",         name:"이도훈",  baptism:"안셀모",         phone:"011-9962-0699",birth:"1981-04-21",feast:"",      dong:"914-201", head:"이용",    headPhone:"011-9962-0699",note:""},
+  {id:20, rel:"",         name:"이시훈",  baptism:"야고보",         phone:"011-9962-0699",birth:"1968-05-12",feast:"",      dong:"914-201", head:"이용",    headPhone:"011-9962-0699",note:""},
+  {id:21, rel:"손자",     name:"이서현",  baptism:"하비에르",       phone:"011-9962-0699",birth:"1999-12-02",feast:"",      dong:"914-201", head:"이용",    headPhone:"011-9962-0699",note:""},
+  {id:22, rel:"세대주",   name:"이종협",  baptism:"제노비오",       phone:"010-2366-5418",birth:"1970-12-24",feast:"12/24", dong:"915-1101",head:"이종협",  headPhone:"010-2366-5418",note:""},
+  {id:23, rel:"자(아들)", name:"이준수",  baptism:"레오",           phone:"",             birth:"2002-07-02",feast:"",      dong:"915-1101",head:"이종협",  headPhone:"010-2366-5418",note:""},
+  {id:24, rel:"배우자",   name:"최동명",  baptism:"미카엘",         phone:"010-9150-8844",birth:"1971-07-29",feast:"",      dong:"920-302", head:"최소희",  headPhone:"010-4223-6936",note:"9-2총무"},
+  {id:25, rel:"세대주",   name:"신유식",  baptism:"안토니오",       phone:"",             birth:"1951-05-10",feast:"",      dong:"919-1503",head:"신유식",  headPhone:"",             note:""},
+  {id:26, rel:"",         name:"신동하",  baptism:"베드로",         phone:"",             birth:"1987-10-11",feast:"",      dong:"919-1503",head:"신유식",  headPhone:"",             note:""},
+  {id:27, rel:"배우자",   name:"유호권",  baptism:"(비신자)",       phone:"",             birth:"1969-03-16",feast:"",      dong:"919-902", head:"강연주",  headPhone:"010-2246-1711",note:""},
+  {id:28, rel:"",         name:"유장환",  baptism:"안토니오",       phone:"",             birth:"1997-06-07",feast:"",      dong:"919-902", head:"강연주",  headPhone:"010-2246-1711",note:""},
+  {id:29, rel:"",         name:"유정환",  baptism:"다니엘",         phone:"010-4067-3047",birth:"2000-01-19",feast:"07/21", dong:"919-902", head:"강연주",  headPhone:"010-2246-1711",note:""},
+  {id:30, rel:"자(아들)", name:"박영범",  baptism:"마르코",         phone:"",             birth:"1993-04-27",feast:"",      dong:"921-1404",head:"송근옥",  headPhone:"010-2723-2652",note:""},
+  {id:31, rel:"자(아들)", name:"박영진",  baptism:"미카엘",         phone:"",             birth:"1997-08-23",feast:"",      dong:"921-1404",head:"송근옥",  headPhone:"010-2723-2652",note:""},
+  {id:32, rel:"세대주",   name:"홍재용",  baptism:"세례자요한",     phone:"",             birth:"1948-06-23",feast:"",      dong:"921-601", head:"홍재용",  headPhone:"",             note:""},
+  {id:33, rel:"",         name:"홍종권",  baptism:"사도요한",       phone:"",             birth:"1978-11-22",feast:"",      dong:"921-601", head:"홍재용",  headPhone:"",             note:""},
+  {id:34, rel:"",         name:"홍종훈",  baptism:"요셉",           phone:"",             birth:"1977-03-04",feast:"",      dong:"921-601", head:"홍재용",  headPhone:"",             note:""},
+  {id:35, rel:"세대주",   name:"이민종",  baptism:"대건안드레아",   phone:"010-8765-8857",birth:"1974-07-16",feast:"",      dong:"919-502", head:"이민종",  headPhone:"010-7760-2262",note:""},
+  {id:36, rel:"",         name:"이규동",  baptism:"예로니모",       phone:"010-8716-0590",birth:"2016-09-20",feast:"",      dong:"919-502", head:"이민종",  headPhone:"010-7760-2262",note:""},
+  {id:37, rel:"",         name:"이규성",  baptism:"베드로",         phone:"010-7760-2262",birth:"2010-06-30",feast:"",      dong:"919-502", head:"이민종",  headPhone:"010-7760-2262",note:""},
+  {id:38, rel:"",         name:"이규연",  baptism:"대건안드레아",   phone:"010-7760-2262",birth:"2004-07-05",feast:"",      dong:"919-502", head:"이민종",  headPhone:"010-7760-2262",note:""},
+  {id:39, rel:"",         name:"이규휘",  baptism:"프란치스코",     phone:"010-7760-2262",birth:"2002-11-27",feast:"",      dong:"919-502", head:"이민종",  headPhone:"010-7760-2262",note:""},
+  {id:40, rel:"세대주",   name:"홍종탁",  baptism:"토마스",         phone:"010-7483-3183",birth:"1985-06-23",feast:"07/03", dong:"919-203", head:"홍종탁",  headPhone:"010-7483-3183",note:"전출"},
+  {id:41, rel:"세대주",   name:"연수필",  baptism:"요셉",           phone:"010-8765-8857",birth:"1961-06-08",feast:"",      dong:"921-102", head:"연수필",  headPhone:"010-8765-8857",note:""},
+  {id:42, rel:"자(아들)", name:"연상준",  baptism:"아브라함",       phone:"",             birth:"1991-02-15",feast:"",      dong:"921-102", head:"연수필",  headPhone:"010-8765-8857",note:""},
+  {id:43, rel:"자(아들)", name:"성준식",  baptism:"요한",           phone:"",             birth:"1976-04-08",feast:"",      dong:"921-1403",head:"오갑순",  headPhone:"010-5110-1566",note:""},
+  {id:44, rel:"세대주",   name:"성준석",  baptism:"미카엘",         phone:"010-6237-7537",birth:"1958-03-10",feast:"",      dong:"919-602", head:"성준석",  headPhone:"010-6237-7537",note:""},
+  {id:45, rel:"세대주",   name:"김성대",  baptism:"사도 요한",      phone:"010-3938-6150",birth:"1980-12-18",feast:"",      dong:"924-203", head:"김성대",  headPhone:"010-3938-6150",note:""},
+  {id:46, rel:"세대주",   name:"홍만표",  baptism:"엘리아",         phone:"010-6246-4920",birth:"1958-06-03",feast:"",      dong:"922-1501",head:"홍만표",  headPhone:"010-6246-4920",note:""},
+  {id:47, rel:"자(아들)", name:"홍재형",  baptism:"요셉",           phone:"",             birth:"1993-03-14",feast:"",      dong:"922-1501",head:"홍만표",  headPhone:"010-6246-4920",note:""},
+  {id:48, rel:"세대주",   name:"최종성",  baptism:"베르나르도",     phone:"",             birth:"1979-07-09",feast:"08/20", dong:"922-604", head:"최종성",  headPhone:"",             note:""},
+  {id:49, rel:"세대주",   name:"유기표",  baptism:"베드로",         phone:"010-5318-5587",birth:"1941-08-31",feast:"06/29", dong:"922-1101",head:"유기표",  headPhone:"010-5318-5587",note:"요양원"},
+  {id:50, rel:"세대주",   name:"김형근",  baptism:"파스칼",         phone:"010-7197-1350",birth:"1981-05-17",feast:"05/17", dong:"923-804", head:"김형근",  headPhone:"010-7197-1350",note:""},
+  {id:51, rel:"자(아들)", name:"김지율",  baptism:"안드레아",       phone:"010-7197-1350",birth:"2010-03-10",feast:"",      dong:"923-804", head:"김형근",  headPhone:"010-7197-1350",note:""},
+  {id:52, rel:"세대주",   name:"추교빈",  baptism:"베네딕토",       phone:"010-6787-2992",birth:"1997-09-15",feast:"",      dong:"923-302", head:"추교빈",  headPhone:"010-6787-2992",note:""},
+  {id:53, rel:"세대주",   name:"김기혁",  baptism:"야고버",         phone:"010-6311-9027",birth:"1975-07-23",feast:"",      dong:"",        head:"김기혁",  headPhone:"010-6311-9027",note:"단톡방초대허가"},
+  {id:54, rel:"세대주",   name:"김명동",  baptism:"요셉",           phone:"010-8351-6284",birth:"1963-03-28",feast:"",      dong:"923-1102",head:"김명동",  headPhone:"010-8351-6284",note:""},
+  {id:55, rel:"",         name:"김무현",  baptism:"미카엘",         phone:"010-3392-6283",birth:"1994-03-21",feast:"",      dong:"923-1102",head:"김명동",  headPhone:"010-8351-6284",note:""},
+  {id:56, rel:"자(아들)", name:"이승표",  baptism:"렌시오",         phone:"",             birth:"1997-03-24",feast:"",      dong:"924-1201",head:"유미숙",  headPhone:"010-9358-0537",note:""},
+  {id:57, rel:"세대주",   name:"김병훈",  baptism:"율리아노",       phone:"010-2044-1152",birth:"1961-01-07",feast:"",      dong:"924-704", head:"김병훈",  headPhone:"010-2044-1152",note:""},
+  {id:58, rel:"",         name:"김민석",  baptism:"빈첸시오",       phone:"",             birth:"1995-09-26",feast:"",      dong:"924-704", head:"김병훈",  headPhone:"010-2044-1152",note:""},
+  {id:59, rel:"",         name:"김민성",  baptism:"엘리아",         phone:"",             birth:"1994-07-02",feast:"07/20", dong:"924-704", head:"김병훈",  headPhone:"010-2044-1152",note:""},
+  {id:60, rel:"세대주",   name:"김영복",  baptism:"말셀리노",       phone:"010-7229-4000",birth:"1963-01-06",feast:"",      dong:"923-201", head:"김영복",  headPhone:"010-7229-4000",note:""},
+  {id:61, rel:"자(아들)", name:"김요섭",  baptism:"요셉",           phone:"010-9590-1997",birth:"1993-02-28",feast:"",      dong:"923-201", head:"김영복",  headPhone:"010-7229-4000",note:""},
+  {id:62, rel:"",         name:"김형섭",  baptism:"사도요한",       phone:"010-7360-1997",birth:"1995-12-21",feast:"",      dong:"923-201", head:"김영복",  headPhone:"010-7229-4000",note:""},
+  {id:63, rel:"세대주",   name:"최우영",  baptism:"요셉",           phone:"010-3740-4261",birth:"1954-12-05",feast:"",      dong:"923-1101",head:"최우영",  headPhone:"010-3740-4261",note:""},
+  {id:64, rel:"",         name:"최준석",  baptism:"베드로",         phone:"010-3740-4261",birth:"1981-02-12",feast:"",      dong:"923-1101",head:"최우영",  headPhone:"010-3740-4261",note:""},
+  {id:65, rel:"자(아들)", name:"박시환",  baptism:"요셉",           phone:"",             birth:"2012-03-15",feast:"",      dong:"924-201", head:"이지영",  headPhone:"010-7720-2254",note:""},
+  {id:66, rel:"세대주",   name:"한성수",  baptism:"알렉산델",       phone:"010-5250-9124",birth:"1969-12-13",feast:"",      dong:"922-1503",head:"한성수",  headPhone:"010-5250-9124",note:""},
+  {id:67, rel:"부",       name:"한종석",  baptism:"베드로",         phone:"",             birth:"1942-12-20",feast:"",      dong:"922-1503",head:"한성수",  headPhone:"010-5250-9124",note:""},
+  {id:68, rel:"형(오빠)", name:"한욱수",  baptism:"유스티노",       phone:"",             birth:"1971-04-13",feast:"",      dong:"922-1503",head:"한성수",  headPhone:"010-5250-9124",note:""},
+  {id:69, rel:"",         name:"한상후",  baptism:"요셉",           phone:"",             birth:"2008-01-27",feast:"",      dong:"922-1503",head:"한성수",  headPhone:"010-5250-9124",note:""},
+  {id:70, rel:"자(아들)", name:"정창욱",  baptism:"디모테오",       phone:"",             birth:"1990-01-19",feast:"",      dong:"922-501", head:"김미옥",  headPhone:"010-3266-8914",note:""},
+  {id:71, rel:"자(아들)", name:"정창원",  baptism:"모세",           phone:"",             birth:"1986-08-28",feast:"",      dong:"922-501", head:"김미옥",  headPhone:"010-3266-8914",note:""},
+  {id:72, rel:"세대주",   name:"홍모세",  baptism:"모세",           phone:"010-2202-6424",birth:"1971-04-06",feast:"",      dong:"924-1404",head:"홍모세",  headPhone:"010-2202-6424",note:"전출"},
+  {id:73, rel:"자(아들)", name:"홍지온",  baptism:"사도요한",       phone:"",             birth:"2003-12-19",feast:"",      dong:"924-1404",head:"홍모세",  headPhone:"010-2202-6424",note:""},
+  {id:74, rel:"세대주",   name:"백승훈",  baptism:"안드레아",       phone:"010-9371-0359",birth:"1963-07-21",feast:"",      dong:"922-1002",head:"백승훈",  headPhone:"010-9371-0359",note:""},
+  {id:75, rel:"세대주",   name:"한형근",  baptism:"스테파노",       phone:"010-3275-2399",birth:"1961-12-29",feast:"",      dong:"922-1402",head:"한형근",  headPhone:"010-3275-2399",note:""},
+  {id:76, rel:"세대주",   name:"이화식",  baptism:"알퐁소",         phone:"010-2807-0174",birth:"1980-08-02",feast:"",      dong:"920-1404",head:"이화식",  headPhone:"010-2807-0174",note:""},
+  {id:77, rel:"녀(딸)",   name:"이리사",  baptism:"로사리아",       phone:"010-2807-0174",birth:"2015-09-24",feast:"",      dong:"922-1004",head:"이화식",  headPhone:"010-2807-0174",note:""},
+  {id:78, rel:"자(아들)", name:"박형빈",  baptism:"콜베",           phone:"010-9958-2034",birth:"1977-08-15",feast:"09/17", dong:"924-602", head:"권성원",  headPhone:"010-9958-2034",note:""},
+];
+
+const INITIAL_SMS = [
+  {id:"sms1",label:"문자1 - 교적확인",    text:"안녕하세요~ 교하성당 9-2구역장입니다.\n\n교하성당 9-2구역 신자 확인을 위한 문자확인 부탁드립니다. 아래 세가지 항목중에 해당되는 항목에 답장을 주시면 감사하겠습니다.\n\n1. 현재 거주중이며 성당활동 중\n2. 이사했음\n3. 거주중이나 냉담 중\n\n귀 가정에 하느님의 사랑과 행복이 가득하시길 기도드립니다.\n\n-----------------------------------------------\nㅇ9 - 2 구역장 구희선 프란치스코\nㅇ총무 최동명 미카엘 드림"},
+  {id:"sms2",label:"문자2 - 오픈채팅방 초대",text:"안녕하세요~ 교하성당 9-2구역장입니다.\n\n구역관리를 위한 카카오 오픈채팅방을 운영하려고 합니다. 초대를 해 드리오니 참여하시여 교하성당 소식을 받아보시고 즐거운 지역생활 하시기 바랍니다.\n\n-----------------------------------------------\nㅇ9 - 2 구역장 구희선 프란치스코\nㅇ총무 최동명 미카엘 드림"},
+  {id:"sms3",label:"문자3 - 채팅방 환영",  text:"안녕하세요~ 교하성당 9-2구역장입니다.\n\n9-2구역 오픈채팅방에 오신것을 환영합니다. 운영규칙을 확인하시기 바랍니다.\n\n-----------------------------------------------\nㅇ9 - 2 구역장 구희선 프란치스코\nㅇ총무 최동명 미카엘 드림"},
+  {id:"sms4",label:"문자4 - 공지사항",     text:"안녕하세요~ 교하성당 9-2구역장입니다.\n\n[공지사항] 몇가지 공지사항을 전달해 드립니다.\nㅇ\nㅇ\n\n-----------------------------------------------\nㅇ9 - 2 구역장 구희선 프란치스코\nㅇ총무 최동명 미카엘 드림"},
+];
+
+const RESP_OPTIONS = ["미발송","발송완료","1.활동중","2.이사","3.냉담","무응답","전화연결","채팅방참여"];
+const RESP_COLORS  = {"미발송":"#94a3b8","발송완료":"#3b82f6","1.활동중":"#22c55e","2.이사":"#ef4444","3.냉담":"#f59e0b","무응답":"#64748b","전화연결":"#8b5cf6","채팅방참여":"#0ea5e9"};
+const NOTE_COLORS  = {"전출":"#ef4444","요양원":"#f59e0b","연락처불명":"#8b5cf6","9-2구역장":"#2563eb","9-2총무":"#059669","단톡방초대허가":"#d97706"};
+
+// ══════════════════════════════════════════════════
+//  상태
+// ══════════════════════════════════════════════════
+let members      = JSON.parse(JSON.stringify(INITIAL_MEMBERS));
+let smsTemplates = JSON.parse(JSON.stringify(INITIAL_SMS));
+let smsResponses = {}; // {memberId: {smsId: "반응"}}
+let currentSmsId = "sms1";
+let editingId    = null;  // null = 신규
+let isNewMember  = false;
+let editingTemplate = false;
+
+const LS_KEY = "gyoha_92_v2";
+
+// ══════════════════════════════════════════════════
+//  로컬스토리지
+// ══════════════════════════════════════════════════
+function loadLS() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return;
+    const d = JSON.parse(raw);
+    if (d.members)      members      = d.members;
+    if (d.smsTemplates) smsTemplates = d.smsTemplates;
+    if (d.smsResponses) smsResponses = d.smsResponses;
+  } catch(e) { console.warn("로드 실패", e); }
+}
+
+function saveLS() {
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify({members, smsTemplates, smsResponses}));
+    const el = document.getElementById("saveOk");
+    el.style.display = "inline";
+    setTimeout(() => el.style.display = "none", 1500);
+  } catch(e) { console.warn("저장 실패", e); }
+}
+
+// ══════════════════════════════════════════════════
+//  JSON 내보내기 / 가져오기
+// ══════════════════════════════════════════════════
+function exportJSON() {
+  const data = {
+    exportedAt: new Date().toISOString(),
+    members,
+    smsTemplates,
+    smsResponses
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  const today = new Date().toISOString().slice(0,10).replace(/-/g,"");
+  a.download = `교하성당_9-2구역_${today}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function importJSON(evt) {
+  const file = evt.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const d = JSON.parse(e.target.result);
+      if (!d.members || !Array.isArray(d.members)) { alert("올바른 JSON 파일이 아닙니다."); return; }
+      if (!confirm(`JSON 파일을 가져오면 현재 데이터가 덮어씌워집니다.\n계속하시겠습니까?\n(${d.members.length}명, ${new Date(d.exportedAt||0).toLocaleString('ko-KR')} 내보낸 파일)`)) return;
+      members      = d.members;
+      smsTemplates = d.smsTemplates || INITIAL_SMS;
+      smsResponses = d.smsResponses || {};
+      saveLS();
+      renderAll();
+      alert("가져오기 완료!");
+    } catch(err) { alert("JSON 파싱 오류: " + err.message); }
+  };
+  reader.readAsText(file);
+  evt.target.value = ""; // reset
+}
+
+// ══════════════════════════════════════════════════
+//  탭 전환
+// ══════════════════════════════════════════════════
+function switchTab(name) {
+  ["members","sms","stats"].forEach(t => {
+    document.getElementById("tab-"+t).style.display = t===name ? "" : "none";
+    document.querySelectorAll(".tab-btn")[["members","sms","stats"].indexOf(t)].classList.toggle("active", t===name);
+  });
+  if (name==="sms")   renderSms();
+  if (name==="stats") renderStats();
+}
+
+// ══════════════════════════════════════════════════
+//  태그 헬퍼
+// ══════════════════════════════════════════════════
+function noteTag(note) {
+  if (!note) return "";
+  const c = NOTE_COLORS[note] || "#6b7280";
+  return `<span class="tag" style="background:${c}22;color:${c};border:1px solid ${c}44">${note}</span>`;
+}
+function respBadge(val) {
+  const v = val || "미발송";
+  const c = RESP_COLORS[v] || "#94a3b8";
+  return `<span class="tag" style="background:${c}22;color:${c};border:1px solid ${c}44">${v}</span>`;
+}
+
+// ══════════════════════════════════════════════════
+//  신자명단 렌더
+// ══════════════════════════════════════════════════
+function renderMembers() {
+  const q    = document.getElementById("searchInput").value.toLowerCase();
+  const fnote= document.getElementById("filterNote").value;
+  const list = document.getElementById("memberList");
+  document.getElementById("totalBadge").textContent = "총 " + members.length + "명";
+
+  const filtered = members.filter(m => {
+    const matchQ = !q || m.name.includes(q) || m.baptism.includes(q) || m.dong.includes(q) || (m.phone||"").includes(q);
+    const matchN = fnote==="전체" || (fnote==="비고없음" ? !m.note : m.note===fnote);
+    return matchQ && matchN;
+  });
+
+  if (!filtered.length) {
+    list.innerHTML = `<div style="text-align:center;color:#475569;padding:32px">검색 결과가 없습니다</div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(m => `
+    <div class="tbl-row ${(m.note==='전출'||m.note==='요양원') ? 'dimmed':''}" onclick="openEditModal(${m.id})">
+      <div class="num">${m.id}</div>
+      <div class="rel-cell">${m.rel||""}</div>
+      <div class="name-cell ${m.rel==='세대주'?'name-head':''}">${m.name}</div>
+      <div class="baptism-cell">${m.baptism||""}</div>
+      <div class="phone-cell" style="color:${m.phone?'#e2e8f0':'#475569'}">${m.phone||"-"}</div>
+      <div class="birth-cell">${m.birth||""}</div>
+      <div class="feast-cell">${m.feast||""}</div>
+      <div class="dong-cell">${m.dong||""}</div>
+      <div class="head-cell">${m.head||""}</div>
+      <div>${noteTag(m.note)}</div>
+    </div>`).join("");
+}
+
+// ══════════════════════════════════════════════════
+//  모달
+// ══════════════════════════════════════════════════
+function openEditModal(id) {
+  const m = members.find(x => x.id===id);
+  if (!m) return;
+  editingId   = id;
+  isNewMember = false;
+  document.getElementById("modalTitle").textContent = "신자 정보 편집";
+  document.getElementById("deleteBtn").style.display = "";
+  fillForm(m);
+  document.getElementById("editModal").classList.add("open");
+}
+
+function openAddModal() {
+  isNewMember = true;
+  editingId   = null;
+  document.getElementById("modalTitle").textContent = "신자 추가";
+  document.getElementById("deleteBtn").style.display = "none";
+  fillForm({rel:"",name:"",baptism:"",phone:"",birth:"",feast:"",dong:"",head:"",headPhone:"",note:""});
+  document.getElementById("editModal").classList.add("open");
+}
+
+function fillForm(m) {
+  ["rel","name","baptism","phone","birth","feast","dong","head","headPhone","note"].forEach(k => {
+    const el = document.getElementById("f-"+k);
+    if (el) el.value = m[k]||"";
+  });
+}
+
+function closeModal() {
+  document.getElementById("editModal").classList.remove("open");
+}
+
+function saveModal() {
+  const name = document.getElementById("f-name").value.trim();
+  if (!name) { alert("성명을 입력하세요."); return; }
+  const data = {};
+  ["rel","name","baptism","phone","birth","feast","dong","head","headPhone","note"].forEach(k => {
+    data[k] = document.getElementById("f-"+k).value.trim();
+  });
+
+  if (isNewMember) {
+    data.id = members.length ? Math.max(...members.map(m=>m.id)) + 1 : 1;
+    members.push(data);
+  } else {
+    const idx = members.findIndex(m => m.id===editingId);
+    if (idx>=0) members[idx] = {...members[idx], ...data};
+  }
+  saveLS();
+  renderAll();
+  closeModal();
+}
+
+function deleteCurrentMember() {
+  if (!confirm("정말 삭제하시겠습니까?")) return;
+  members = members.filter(m => m.id!==editingId);
+  saveLS();
+  renderAll();
+  closeModal();
+}
+
+// ══════════════════════════════════════════════════
+//  문자관리 렌더
+// ══════════════════════════════════════════════════
+function renderSms() {
+  // 왼쪽 목록
+  document.getElementById("smsList").innerHTML = smsTemplates.map(t => `
+    <div class="sms-item ${t.id===currentSmsId?'active':''}" onclick="selectSms('${t.id}')">${t.label}</div>`).join("");
+
+  // 미리보기
+  const tmpl = smsTemplates.find(t=>t.id===currentSmsId);
+  document.getElementById("smsPreviewText").textContent = tmpl ? tmpl.text : "";
+  document.getElementById("smsEditArea").value = tmpl ? tmpl.text : "";
+
+  // 반응 현황 제목
+  document.getElementById("smsRespTitle").textContent = "반응 현황 — " + (tmpl?.label||"");
+
+  // 반응 배지
+  document.getElementById("respBadges").innerHTML = Object.entries(RESP_COLORS).slice(0,5).map(([k,v]) =>
+    `<span class="tag" style="background:${v}22;color:${v};border:1px solid ${v}44;font-size:10px">${k}</span>`).join("");
+
+  // 반응 목록 (전화번호 있는 신자만)
+  const withPhone = members.filter(m => m.phone);
+  document.getElementById("smsRespList").innerHTML = withPhone.map(m => {
+    const curVal = (smsResponses[m.id]||{})[currentSmsId] || "미발송";
+    const options = RESP_OPTIONS.map(o => `<option value="${o}" ${o===curVal?"selected":""}>${o}</option>`).join("");
+    const color   = RESP_COLORS[curVal] || "#94a3b8";
+    return `<div class="resp-row">
+      <div style="color:#475569;font-size:11px">${m.id}</div>
+      <div style="font-weight:600">${m.name}</div>
+      <div style="font-size:12px;color:#94a3b8">${m.baptism}</div>
+      <div style="font-size:12px;color:#64748b">${m.phone}</div>
+      <select style="color:${color}" onchange="setResp(${m.id},'${currentSmsId}',this.value)">${options}</select>
+    </div>`;
+  }).join("");
+}
+
+function selectSms(id) {
+  currentSmsId    = id;
+  editingTemplate = false;
+  document.getElementById("smsPreviewText").style.display = "";
+  document.getElementById("smsEditArea").style.display    = "none";
+  renderSms();
+}
+
+function toggleTemplateEdit() {
+  editingTemplate = !editingTemplate;
+  document.getElementById("smsPreviewText").style.display = editingTemplate ? "none" : "";
+  document.getElementById("smsEditArea").style.display    = editingTemplate ? "" : "none";
+}
+
+function updateTemplate(val) {
+  const idx = smsTemplates.findIndex(t=>t.id===currentSmsId);
+  if (idx>=0) smsTemplates[idx].text = val;
+  document.getElementById("smsPreviewText").textContent = val;
+  saveLS();
+}
+
+function setResp(memberId, smsId, val) {
+  if (!smsResponses[memberId]) smsResponses[memberId] = {};
+  smsResponses[memberId][smsId] = val;
+  // 색상만 업데이트
+  const el = event.target;
+  el.style.color = RESP_COLORS[val] || "#94a3b8";
+  saveLS();
+}
+
+// ══════════════════════════════════════════════════
+//  통계 렌더
+// ══════════════════════════════════════════════════
+function renderStats() {
+  const withPhone = members.filter(m => m.phone);
+  const getResp = (mid, sid) => (smsResponses[mid]||{})[sid] || "미발송";
+
+  // 핵심 수치
+  const active   = Object.keys(smsResponses).filter(mid => Object.values(smsResponses[mid]).includes("1.활동중")).length;
+  const moved    = Object.keys(smsResponses).filter(mid => Object.values(smsResponses[mid]).includes("2.이사")).length;
+  const coldDown = Object.keys(smsResponses).filter(mid => Object.values(smsResponses[mid]).includes("3.냉담")).length;
+
+  document.getElementById("statGrid").innerHTML = [
+    {label:"전체 신자",    val:members.length,   color:"#3b82f6"},
+    {label:"전화번호 보유", val:withPhone.length, color:"#22c55e"},
+    {label:"활동중 응답",  val:active,            color:"#4ade80"},
+    {label:"이사 응답",    val:moved,             color:"#ef4444"},
+    {label:"냉담 응답",    val:coldDown,          color:"#f59e0b"},
+  ].map(s => `
+    <div class="stat-card" style="border:1px solid ${s.color}33">
+      <div class="stat-num" style="color:${s.color}">${s.val}</div>
+      <div class="stat-label">${s.label}</div>
+    </div>`).join("");
+
+  // 문자별 반응
+  document.getElementById("smsStat").innerHTML = smsTemplates.map(tmpl => {
+    const responses = withPhone.map(m => getResp(m.id, tmpl.id));
+    const counts = {};
+    RESP_OPTIONS.forEach(o => counts[o] = responses.filter(r=>r===o).length);
+    const total = withPhone.length || 1;
+    const rows = RESP_OPTIONS.filter(o=>o!=="미발송").map(o => {
+      const c = RESP_COLORS[o]||"#94a3b8";
+      const pct = Math.round((counts[o]/total)*100);
+      return `<div class="bar-row">
+        <span class="tag" style="background:${c}22;color:${c};border:1px solid ${c}44;font-size:10px">${o}</span>
+        <div style="display:flex;align-items:center;gap:7px">
+          <div class="bar-bg" style="background:${c}22">
+            <div class="bar-fill" style="background:${c};width:${pct}%"></div>
+          </div>
+          <span style="color:#e2e8f0;font-size:13px;font-weight:600;min-width:18px;text-align:right">${counts[o]}</span>
+        </div>
+      </div>`;
+    }).join("");
+    return `<div class="sms-stat-card">
+      <div class="sms-stat-title">${tmpl.label}</div>
+      ${rows}
+      <div style="border-top:1px solid #334155;padding-top:7px;margin-top:5px;display:flex;justify-content:space-between;color:#64748b;font-size:11px">
+        <span>미발송</span><span>${counts["미발송"]}</span>
+      </div>
+    </div>`;
+  }).join("");
+
+  // 비고별
+  document.getElementById("noteStat").innerHTML = Object.entries(NOTE_COLORS).map(([k,v]) => {
+    const cnt = members.filter(m=>m.note===k).length;
+    if (!cnt) return "";
+    return `<div class="note-card" style="background:${v}11;border:1px solid ${v}33">
+      <div class="n-num" style="color:${v}">${cnt}</div>
+      <div class="n-label" style="color:${v}99">${k}</div>
+    </div>`;
+  }).join("");
+}
+
+// ══════════════════════════════════════════════════
+//  전체 렌더
+// ══════════════════════════════════════════════════
+function renderAll() {
+  renderMembers();
+  if (document.getElementById("tab-sms").style.display !== "none") renderSms();
+  if (document.getElementById("tab-stats").style.display !== "none") renderStats();
+}
+
+// ══════════════════════════════════════════════════
+//  초기화
+// ══════════════════════════════════════════════════
+loadLS();
+renderAll();
+</script>
+</body>
+</html>
